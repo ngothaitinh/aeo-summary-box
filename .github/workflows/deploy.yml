@@ -3,9 +3,9 @@ name: Deploy Plugin to tpiland.com
 on:
   push:
     branches:
-      - main        # Push lên main là deploy tự động
+      - main
 
-  workflow_dispatch:           # Cho phép chạy thủ công từ tab Actions trên GitHub
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -15,24 +15,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Deploy via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          server:          103.77.162.22
-          username:        tpilandc
-          password:        ${{ secrets.CPANEL_PASSWORD }}
-          port:            22
-          protocol:        sftp
-          local-dir:       ./aeo-summary-box/
-          server-dir:      /home/tpilandc/public_html/wp-content/plugins/aeo-summary-box/
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/*.zip
-            **/Thumbs.db
-            **/.DS_Store
+          server: 103.77.162.22
+          port: 22
+          username: tpilandc
+          password: ${{ secrets.CPANEL_PASSWORD }}
+          local_path: ./aeo-summary-box/*
+          remote_path: /home/tpilandc/public_html/wp-content/plugins/aeo-summary-box/
+          sftp_only: true
+          delete_remote_files: false
