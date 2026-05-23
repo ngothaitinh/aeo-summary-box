@@ -68,6 +68,7 @@ class Bulk {
 
 		add_action( 'admin_notices', [ $this, 'admin_notice' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_bulk_script' ] );
+		add_action( 'restrict_manage_posts', [ $this, 'render_queue_all_button' ] );
 	}
 
 	// ── Bulk action ──────────────────────────────────────────────────────────
@@ -265,6 +266,46 @@ class Bulk {
 		$status['running'] = false;
 		$status['current'] = '';
 		update_option( self::STATUS_OPTION, $status, false );
+	}
+
+	// ── Nút "Xử lý tất cả" trên toolbar danh sách bài ──────────────────────
+
+	/**
+	 * Render nút "✨ Tạo tóm tắt AI tất cả bài" trên toolbar filter.
+	 *
+	 * @param string $post_type Post type hiện tại.
+	 */
+	public function render_queue_all_button( string $post_type ): void {
+		$post_types = (array) Settings::get_instance()->get( 'post_types', [ 'post', 'page' ] );
+		if ( ! in_array( $post_type, $post_types, true ) ) {
+			return;
+		}
+
+		$counts  = wp_count_posts( $post_type );
+		$total   = (int) ( $counts->publish ?? 0 );
+		$in_queue = count( (array) get_option( self::QUEUE_OPTION, [] ) );
+
+		echo '<button type="button" id="aeo-sb-queue-all"'
+			. ' class="button"'
+			. ' data-post-type="' . esc_attr( $post_type ) . '"'
+			. ' data-total="' . $total . '"'
+			. ' style="margin-left:4px;"'
+			. ( $in_queue > 0 ? ' disabled title="' . esc_attr__( 'Đang có hàng đợi chạy', 'aeo-summary-box' ) . '"' : '' )
+			. '>'
+			. '✨ ' . esc_html__( 'Tóm tắt AI tất cả bài', 'aeo-summary-box' )
+			. '</button>';
+
+		echo ' <button type="button" id="aeo-sb-queue-all-overwrite"'
+			. ' class="button"'
+			. ' data-post-type="' . esc_attr( $post_type ) . '"'
+			. ' data-total="' . $total . '"'
+			. ' data-overwrite="1"'
+			. ' title="' . esc_attr__( 'Tạo lại kể cả bài đã có tóm tắt', 'aeo-summary-box' ) . '"'
+			. ' style="margin-left:2px;"'
+			. ( $in_queue > 0 ? ' disabled' : '' )
+			. '>'
+			. '🔄 ' . esc_html__( 'Tạo lại tất cả', 'aeo-summary-box' )
+			. '</button>';
 	}
 
 	/** Enqueue script progress bar trên màn hình danh sách bài viết. */

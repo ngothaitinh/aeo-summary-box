@@ -223,48 +223,76 @@ class REST_API {
 	}
 
 	/**
-	 * Thêm tất cả bài publish CHƯA có tóm tắt vào hàng đợi.
-	 * Bỏ qua bài đã có _aeo_summary_json hoặc đã có trong queue.
+	 * Thêm tất cả bài publish vào hàng đợi.
+	 *
+	 * Tham số body JSON:
+	 *  - overwrite (bool, default false): nếu true → thêm cả bài đã có tóm tắt (tạo lại).
+	 *  - post_type (string, optional): giới hạn theo post type cụ thể.
 	 */
 	public function handle_queue_all( \WP_REST_Request $request ): \WP_REST_Response {
 		$settings   = Settings::get_instance();
 		$post_types = (array) $settings->get( 'post_types', [ 'post', 'page' ] );
 
-		// Query bài publish chưa có meta tóm tắt.
-		$post_ids = get_posts( [
+		$body      = $request->get_json_params() ?? [];
+		$overwrite = ! empty( $body['overwrite'] );
+
+		// Lọc theo post_type nếu client gửi kèm.
+		if ( ! empty( $body['post_type'] ) ) {
+			$requested_pt = sanitize_key( $body['post_type'] );
+			if ( in_array( $requested_pt, $post_types, true ) ) {
+				$post_types = [ $requested_pt ];
+			}
+		}
+
+		$query_args = [
 			'post_type'        => $post_types,
 			'post_status'      => 'publish',
 			'posts_per_page'   => -1,
 			'fields'           => 'ids',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-			'meta_query'       => [ [
-				'key'     => AEO_SB_META_KEY,
-				'compare' => 'NOT EXISTS',
-			] ],
 			'no_found_rows'    => true,
 			'suppress_filters' => true,
-		] );
+		];
+
+		// Nếu KHÔNG overwrite → chỉ lấy bài chưa có meta tóm tắt.
+		if ( ! $overwrite ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			$query_args['meta_query'] = [ [
+				'key'     => AEO_SB_META_KEY,
+				'compare' => 'NOT EXISTS',
+			] ];
+		}
+
+		$post_ids = get_posts( $query_args );
 
 		if ( empty( $post_ids ) ) {
 			return new \WP_REST_Response( [
 				'queued'  => 0,
-				'message' => __( 'Tất cả bài đã có tóm tắt AI — không có gì để thêm.', 'aeo-summary-box' ),
+				'message' => $overwrite
+					? __( 'Không có bài publish nào để xử lý.', 'aeo-summary-box' )
+					: __( 'Tất cả bài đã có tóm tắt AI — không có gì để thêm.', 'aeo-summary-box' ),
 			], 200 );
 		}
 
-		// Merge vào queue hiện tại, tránh trùng.
-		$current = array_map( 'absint', (array) get_option( 'aeo_sb_bulk_queue', [] ) );
-		$new_ids = array_values( array_diff( array_map( 'absint', $post_ids ), $current ) );
+		// Khi overwrite: reset hàng đợi hoàn toàn, không merge.
+		if ( $overwrite ) {
+			$new_ids = array_values( array_map( 'absint', $post_ids ) );
+			$merged  = $new_ids;
+			update_option( 'aeo_sb_bulk_queue', $merged, false );
+		} else {
+			// Merge vào queue hiện tại, tránh trùng.
+			$current = array_map( 'absint', (array) get_option( 'aeo_sb_bulk_queue', [] ) );
+			$new_ids = array_values( array_diff( array_map( 'absint', $post_ids ), $current ) );
 
-		if ( empty( $new_ids ) ) {
-			return new \WP_REST_Response( [
-				'queued'  => 0,
-				'message' => __( 'Các bài chưa có tóm tắt đã có trong hàng đợi rồi.', 'aeo-summary-box' ),
-			], 200 );
+			if ( empty( $new_ids ) ) {
+				return new \WP_REST_Response( [
+					'queued'  => 0,
+					'message' => __( 'Các bài chưa có tóm tắt đã có trong hàng đợi rồi.', 'aeo-summary-box' ),
+				], 200 );
+			}
+
+			$merged = array_values( array_merge( $current, $new_ids ) );
+			update_option( 'aeo_sb_bulk_queue', $merged, false );
 		}
-
-		$merged = array_values( array_merge( $current, $new_ids ) );
-		update_option( 'aeo_sb_bulk_queue', $merged, false );
 
 		// Khởi tạo / reset progress.
 		update_option( 'aeo_sb_bulk_status', [

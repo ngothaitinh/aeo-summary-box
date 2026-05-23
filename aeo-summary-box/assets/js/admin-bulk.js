@@ -121,13 +121,53 @@
       .replace(/>/g, '&gt;');
   }
 
+  // ── Queue-All buttons ────────────────────────────────────────────────────
+
+  function queueAll(postType, overwrite) {
+    var $btn    = overwrite ? $('#aeo-sb-queue-all-overwrite') : $('#aeo-sb-queue-all');
+    var total   = parseInt($btn.data('total') || 0, 10);
+    var origTxt = $btn.text();
+
+    var confirmMsg = overwrite
+      ? 'Tạo lại tóm tắt AI cho TẤT CẢ ' + total + ' bài (kể cả bài đã có tóm tắt)?\nThao tác này sẽ ghi đè nội dung cũ.'
+      : 'Thêm ' + total + ' bài vào hàng đợi tóm tắt AI?\n(Bỏ qua bài đã có tóm tắt)';
+
+    if (!window.confirm(confirmMsg)) return;
+
+    $('#aeo-sb-queue-all, #aeo-sb-queue-all-overwrite').prop('disabled', true);
+    $btn.text('Đang thêm vào hàng đợi…');
+
+    $.ajax({
+      url: aeoBulk.restBase + '/queue-all',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ post_type: postType, overwrite: !!overwrite }),
+      beforeSend: function (xhr) { xhr.setRequestHeader('X-WP-Nonce', aeoBulk.nonce); },
+    }).done(function (data) {
+      $btn.text(origTxt);
+      if (data.queued > 0) {
+        isDone = false;
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(poll, 2000);
+      } else {
+        $('#aeo-sb-queue-all, #aeo-sb-queue-all-overwrite').prop('disabled', false);
+        window.alert(data.message || 'Không có bài nào để thêm vào hàng đợi.');
+      }
+    }).fail(function (xhr) {
+      $btn.text(origTxt);
+      $('#aeo-sb-queue-all, #aeo-sb-queue-all-overwrite').prop('disabled', false);
+      var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Lỗi kết nối — thử lại!';
+      window.alert(msg);
+    });
+  }
+
   // ── Khởi động ─────────────────────────────────────────────────────────────
 
   $(function () {
     // Poll ngay khi trang load — kiểm tra job đang chạy không.
     poll();
 
-    // Cũng kích hoạt poll khi user submit bulk action.
+    // Kích hoạt poll khi user submit bulk action (chọn từng bài).
     $(document).on('click', '[name="doaction"], [name="doaction2"]', function () {
       var action = $('[name="action"]').val() || $('[name="action2"]').val();
       if (action === 'aeo_sb_generate') {
@@ -135,6 +175,18 @@
         clearTimeout(pollTimer);
         pollTimer = setTimeout(poll, 4000); // chờ redirect xong mới poll
       }
+    });
+
+    // Nút "Tóm tắt AI tất cả bài" — chỉ bài chưa có tóm tắt.
+    $(document).on('click', '#aeo-sb-queue-all', function () {
+      var pt = $(this).data('post-type') || '';
+      queueAll(pt, false);
+    });
+
+    // Nút "Tạo lại tất cả" — ghi đè cả bài đã có tóm tắt.
+    $(document).on('click', '#aeo-sb-queue-all-overwrite', function () {
+      var pt = $(this).data('post-type') || '';
+      queueAll(pt, true);
     });
   });
 
