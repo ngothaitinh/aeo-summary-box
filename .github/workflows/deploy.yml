@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main        # Push lên main là deploy tự động
-    paths:
-      - 'aeo-summary-box/**'   # Chỉ chạy khi có thay đổi trong thư mục plugin
 
   workflow_dispatch:           # Cho phép chạy thủ công từ tab Actions trên GitHub
 
