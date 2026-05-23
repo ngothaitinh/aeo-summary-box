@@ -25,6 +25,9 @@ class Bulk {
 	/** Khoảng cách giữa các lần xử lý (giây). */
 	private const PROCESS_INTERVAL = 5;
 
+	/** Số bài xử lý mỗi lần cron fire. */
+	private const BATCH_SIZE = 5;
+
 	/** Option key lưu trạng thái progress. */
 	private const STATUS_OPTION = 'aeo_sb_bulk_status';
 
@@ -173,7 +176,7 @@ class Bulk {
 	// ── WP-Cron: xử lý hàng đợi ─────────────────────────────────────────────
 
 	/**
-	 * Lấy 1 bài từ đầu hàng đợi, sinh tóm tắt, lưu vào post_meta.
+	 * Lấy BATCH_SIZE bài từ đầu hàng đợi, sinh tóm tắt, lưu vào post_meta.
 	 * Sau đó lên lịch lần tiếp theo nếu còn bài trong hàng đợi.
 	 */
 	public function process_queue(): void {
@@ -182,71 +185,65 @@ class Bulk {
 			return;
 		}
 
-		$post_id = array_shift( $queue );
-		update_option( self::QUEUE_OPTION, $queue, false );
-
-		$post = get_post( $post_id );
-
-		// Cập nhật progress: bài đang xử lý.
-		$status            = (array) get_option( self::STATUS_OPTION, [] );
-		$status['current'] = $post ? get_the_title( $post_id ) : "(#{$post_id})";
-		$status['running'] = true;
-		update_option( self::STATUS_OPTION, $status, false );
-
-		// Bỏ qua nếu bài không tồn tại hoặc chưa publish.
-		if ( ! $post || 'publish' !== $post->post_status ) {
-			$this->tick_progress();
-			if ( ! empty( $queue ) ) {
-				wp_schedule_single_event( time() + self::PROCESS_INTERVAL, self::CRON_HOOK );
-			} else {
-				$this->finish_progress();
-			}
-			return;
-		}
-
-		$client = new AI_Client();
-
-		// Áp dụng intent mặc định nếu được cấu hình trong Settings.
+		$client      = new AI_Client();
 		$bulk_intent = (string) Settings::get_instance()->get( 'bulk_default_intent', '' );
 		if ( $bulk_intent && in_array( $bulk_intent, [ 'know', 'do', 'go', 'hybrid' ], true ) ) {
 			$client->set_intent( $bulk_intent );
 		}
 
-		$result = $client->generate( $post->post_title, $post->post_content );
+		$batch = array_splice( $queue, 0, self::BATCH_SIZE );
+		update_option( self::QUEUE_OPTION, $queue, false );
 
-		if ( ! is_wp_error( $result ) ) {
-			// Backup phiên bản hiện tại trước khi ghi đè (cho tính năng Hoàn tác).
-			$old_raw = get_post_meta( $post_id, AEO_SB_META_KEY, true );
-			if ( $old_raw ) {
-				$backup = [
-					'saved_at' => time(),
-					'data'     => json_decode( $old_raw, true ),
-				];
-				update_post_meta( $post_id, AEO_SB_META_PREV_KEY, wp_json_encode( $backup, JSON_UNESCAPED_UNICODE ) );
+		foreach ( $batch as $post_id ) {
+			$post = get_post( $post_id );
+
+			// Cập nhật progress: bài đang xử lý.
+			$status            = (array) get_option( self::STATUS_OPTION, [] );
+			$status['current'] = $post ? get_the_title( $post_id ) : "(#{$post_id})";
+			$status['running'] = true;
+			update_option( self::STATUS_OPTION, $status, false );
+
+			// Bỏ qua nếu bài không tồn tại hoặc chưa publish.
+			if ( ! $post || 'publish' !== $post->post_status ) {
+				$this->tick_progress();
+				continue;
 			}
 
-			update_post_meta(
-				$post_id,
-				AEO_SB_META_KEY,
-				wp_json_encode( $result, JSON_UNESCAPED_UNICODE )
-			);
+			$result = $client->generate( $post->post_title, $post->post_content );
 
-			// Lưu token usage.
-			$tokens = $client->get_last_tokens();
-			if ( $tokens ) {
-				$tokens['provider'] = Settings::get_instance()->get( 'provider', 'gemini' );
-				$tokens['time']     = time();
-				update_post_meta( $post_id, '_aeo_summary_tokens', wp_json_encode( $tokens ) );
+			if ( ! is_wp_error( $result ) ) {
+				// Backup phiên bản hiện tại trước khi ghi đè (cho tính năng Hoàn tác).
+				$old_raw = get_post_meta( $post_id, AEO_SB_META_KEY, true );
+				if ( $old_raw ) {
+					$backup = [
+						'saved_at' => time(),
+						'data'     => json_decode( $old_raw, true ),
+					];
+					update_post_meta( $post_id, AEO_SB_META_PREV_KEY, wp_json_encode( $backup, JSON_UNESCAPED_UNICODE ) );
+				}
+
+				update_post_meta(
+					$post_id,
+					AEO_SB_META_KEY,
+					wp_json_encode( $result, JSON_UNESCAPED_UNICODE )
+				);
+
+				// Lưu token usage.
+				$tokens = $client->get_last_tokens();
+				if ( $tokens ) {
+					$tokens['provider'] = Settings::get_instance()->get( 'provider', 'gemini' );
+					$tokens['time']     = time();
+					update_post_meta( $post_id, '_aeo_summary_tokens', wp_json_encode( $tokens ) );
+				}
+
+				// Xoá schema cache — sẽ được tái tạo tự động.
+				Schema::get_instance()->clear_cache( $post_id );
 			}
 
-			// Xoá schema cache — sẽ được tái tạo tự động.
-			Schema::get_instance()->clear_cache( $post_id );
+			$this->tick_progress();
 		}
 
-		// Cập nhật progress: xong 1 bài.
-		$this->tick_progress();
-
-		// Tiếp tục với bài tiếp theo.
+		// Tiếp tục với batch tiếp theo.
 		if ( ! empty( $queue ) ) {
 			wp_schedule_single_event( time() + self::PROCESS_INTERVAL, self::CRON_HOOK );
 		} else {
