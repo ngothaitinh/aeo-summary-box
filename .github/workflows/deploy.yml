@@ -16,14 +16,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      - name: Deploy via SCP
+        uses: appleboy/scp-action@v0.1.7
         with:
-          server: 103.77.162.22
+          host: 103.77.162.22
           port: 22
           username: tpilandc
           password: ${{ secrets.CPANEL_PASSWORD }}
-          local_path: ./aeo-summary-box/*
-          remote_path: /home/tpilandc/public_html/wp-content/plugins/aeo-summary-box/
-          sftp_only: true
-          delete_remote_files: false
+          source: "aeo-summary-box/"
+          target: /home/tpilandc/public_html/wp-content/plugins/aeo-summary-box/
+          strip_components: 1
+          rm: false
