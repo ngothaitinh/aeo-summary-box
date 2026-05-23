@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/tpilandc/public_html/wp-content/plugins/aeo-summary-box/
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R aeo-summary-box/. $DEPLOYPATH
+    - /bin/echo "Deployed at $(date)"

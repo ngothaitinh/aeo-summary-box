@@ -9,21 +9,18 @@ on:
 
 jobs:
   deploy:
-    name: SFTP Deploy
+    name: Trigger cPanel Git Pull
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: 103.77.162.22
-          port: 22
-          username: tpilandc
-          password: ${{ secrets.CPANEL_PASSWORD }}
-          source: "aeo-summary-box/"
-          target: /home/tpilandc/public_html/wp-content/plugins/aeo-summary-box/
-          strip_components: 1
-          rm: false
+      - name: Trigger cPanel to pull latest code
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/cpanel_response.txt -w "%{http_code}" \
+            -H "Authorization: cpanel tpilandc:${{ secrets.CPANEL_TOKEN }}" \
+            "https://tpiland.com:2083/execute/VersionControl/update?repository_root=%2Fhome%2Ftpilandc%2Frepos%2Faeo-summary-box")
+          cat /tmp/cpanel_response.txt
+          echo "HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Deploy failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
