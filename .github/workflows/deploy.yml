@@ -9,26 +9,26 @@ on:
 
 jobs:
   deploy:
-    name: FTP Deploy
+    name: SFTP Deploy
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2       # Cần để FTP action phát hiện file thay đổi
+          fetch-depth: 2
 
-      - name: Deploy via FTP
+      - name: Deploy via SFTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:          103.77.162.22
-          username:        claudecode@tpiland.com
-          password:        ${{ secrets.FTP_PASSWORD }}
-          port:            21
-          protocol:        ftp          # Plain FTP (server không dùng SSL)
+          username:        tpilandc
+          password:        ${{ secrets.CPANEL_PASSWORD }}
+          port:            22
+          protocol:        sftp
           local-dir:       ./aeo-summary-box/
-          server-dir:      /public_html/wp-content/plugins/aeo-summary-box/
-          dangerous-clean-slate: false  # KHÔNG xoá file trên server trước khi upload
+          server-dir:      /home/tpilandc/public_html/wp-content/plugins/aeo-summary-box/
+          dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.git*/**
