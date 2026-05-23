@@ -16,7 +16,7 @@ jobs:
       - name: Trigger cPanel to pull latest code
         run: |
           HTTP_CODE=$(curl -s -o /tmp/cpanel_response.txt -w "%{http_code}" \
-            -H "Authorization: cpanel tpilandc:${{ secrets.CPANEL_TOKEN }}" \
+            -u "tpilandc:${{ secrets.CPANEL_PASSWORD }}" \
             "https://tpiland.com:2083/execute/VersionControl/update?repository_root=%2Fhome%2Ftpilandc%2Frepos%2Faeo-summary-box")
           cat /tmp/cpanel_response.txt
           echo "HTTP status: $HTTP_CODE"
