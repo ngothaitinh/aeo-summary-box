@@ -1,0 +1,245 @@
+/* AEO Summary Box – Frontend styles */
+
+.aeo-sb-box {
+  border: 2px solid #F4A300;
+  border-radius: 12px;
+  background-color: #FFF6E5;
+  margin: 0 auto 28px;
+  max-width: 800px;
+  width: 100%;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+/* ── Header ── */
+.aeo-sb-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #F4A300;
+  padding: 8px 16px;
+}
+
+.aeo-sb-header-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.aeo-sb-header-text {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ── Intent badge (DO / GO) ── */
+.aeo-sb-intent-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 20px;
+  background: rgba(0,0,0,.18);
+  color: #fff;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+/* ── Body ── */
+.aeo-sb-body {
+  padding: 14px 20px 10px;
+}
+
+/* ── TL;DR ── */
+.aeo-sb-tldr {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #555;
+  font-style: italic;
+  border-left: 3px solid #F4A300;
+  padding-left: 10px;
+  line-height: 1.5;
+}
+
+/* ── Title ── */
+.aeo-sb-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+/* ── Bullets ── */
+.aeo-sb-bullets {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+}
+
+.aeo-sb-bullet {
+  display: flex;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px dashed rgba(0,0,0,.08);
+  flex-wrap: wrap;
+}
+
+.aeo-sb-bullet:last-child {
+  border-bottom: none;
+}
+
+.aeo-sb-label {
+  white-space: nowrap;
+  color: #333;
+  min-width: 120px;
+}
+
+.aeo-sb-content {
+  color: #444;
+  flex: 1;
+}
+
+/* ── Note ── */
+.aeo-sb-note {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ── Updated date ── */
+.aeo-sb-updated {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #aaa;
+  text-align: right;
+}
+
+/* ── CTA ── */
+.aeo-sb-cta {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.aeo-sb-cta-arrow {
+  display: inline-block;
+}
+
+/* ── Mobile collapse toggle button ── */
+.aeo-sb-toggle {
+  display: none; /* JS sẽ bỏ hidden attr khi compact_mobile bật */
+  width: 100%;
+  background: rgba(244,163,0,.12);
+  border: none;
+  border-top: 1px dashed rgba(244,163,0,.5);
+  color: #c47f00;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 0;
+  cursor: pointer;
+  text-align: center;
+  transition: background .2s;
+}
+
+.aeo-sb-toggle:hover {
+  background: rgba(244,163,0,.22);
+}
+
+/* Trạng thái mở rộng — ẩn text "Xem thêm", hiện "Thu gọn" */
+.aeo-sb-toggle .aeo-sb-toggle-less { display: none; }
+.aeo-sb-box.aeo-sb-expanded .aeo-sb-toggle .aeo-sb-toggle-more { display: none; }
+.aeo-sb-box.aeo-sb-expanded .aeo-sb-toggle .aeo-sb-toggle-less { display: inline; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .aeo-sb-box {
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  .aeo-sb-body {
+    padding: 9px 12px 7px;
+  }
+
+  .aeo-sb-tldr {
+    font-size: 12px;
+    margin-bottom: 6px;
+    padding-left: 8px;
+    line-height: 1.4;
+  }
+
+  .aeo-sb-title {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .aeo-sb-bullets {
+    margin-bottom: 6px;
+  }
+
+  /* Bullet giữ layout 1 dòng (label in đậm + content liền sau) để
+     tiết kiệm chiều cao — KHÔNG xuống dòng tách label/content. */
+  .aeo-sb-bullet {
+    gap: 4px;
+    padding: 2px 0;
+  }
+
+  .aeo-sb-label {
+    min-width: unset;
+  }
+
+  .aeo-sb-content {
+    font-size: 12.5px;
+  }
+
+  /* Collapse: ẩn bullets từ vị trí 4 trở đi khi chưa expand */
+  .aeo-sb-box[data-compact] .aeo-sb-bullet--extra {
+    display: none;
+  }
+  .aeo-sb-box[data-compact].aeo-sb-expanded .aeo-sb-bullet--extra {
+    display: flex;
+  }
+
+  /* Ẩn note & cta khi chưa expand (chỉ trên mobile compact) */
+  .aeo-sb-box[data-compact]:not(.aeo-sb-expanded) .aeo-sb-note,
+  .aeo-sb-box[data-compact]:not(.aeo-sb-expanded) .aeo-sb-cta {
+    display: none;
+  }
+
+  /* Trần cứng: thân hộp khi thu gọn không vượt ~50% chiều cao màn hình.
+     Trừ ~64px cho header + nút toggle (nằm ngoài .aeo-sb-body). Nếu nội
+     dung dài hơn sẽ bị cắt — nút "Xem thêm" bên dưới mở rộng đầy đủ. */
+  .aeo-sb-box[data-compact]:not(.aeo-sb-expanded) .aeo-sb-body {
+    max-height: calc(50vh - 64px);
+    overflow: hidden;
+  }
+
+  /* Hiện nút toggle trên mobile */
+  .aeo-sb-box[data-compact] .aeo-sb-toggle {
+    display: block;
+  }
+
+  /* Transition mượt khi expand */
+  .aeo-sb-bullet--extra {
+    animation: aeoFadeIn .25s ease;
+  }
+}
+
+@keyframes aeoFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Print: ẩn CTA, toggle ── */
+@media print {
+  .aeo-sb-cta,
+  .aeo-sb-toggle { display: none; }
+
+  /* Hiện tất cả bullets khi in */
+  .aeo-sb-bullet--extra { display: flex !important; }
+}

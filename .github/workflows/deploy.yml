@@ -1,0 +1,40 @@
+name: Deploy Plugin to tpiland.com
+
+on:
+  push:
+    branches:
+      - main        # Push lên main là deploy tự động
+    paths:
+      - 'aeo-summary-box/**'   # Chỉ chạy khi có thay đổi trong thư mục plugin
+
+  workflow_dispatch:           # Cho phép chạy thủ công từ tab Actions trên GitHub
+
+jobs:
+  deploy:
+    name: FTP Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2       # Cần để FTP action phát hiện file thay đổi
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:          ${{ secrets.FTP_SERVER }}
+          username:        ${{ secrets.FTP_USERNAME }}
+          password:        ${{ secrets.FTP_PASSWORD }}
+          port:            21
+          protocol:        ftps         # Explicit FTPS (cPanel hỗ trợ)
+          local-dir:       ./aeo-summary-box/
+          server-dir:      /public_html/wp-content/plugins/aeo-summary-box/
+          dangerous-clean-slate: false  # KHÔNG xoá file trên server trước khi upload
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/*.zip
+            **/Thumbs.db
+            **/.DS_Store

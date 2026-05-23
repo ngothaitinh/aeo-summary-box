@@ -1,0 +1,235 @@
+/* AEO Summary Box – Admin metabox styles */
+
+#aeo-sb-metabox {
+  font-size: 14px;
+}
+
+.aeo-sb-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 14px;
+  flex-wrap: wrap;
+}
+
+.aeo-sb-indicator {
+  font-size: 13px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.aeo-sb-indicator.has-data {
+  background: #d4edda;
+  color: #155724;
+}
+
+.aeo-sb-indicator.no-data {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.aeo-sb-notice {
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.aeo-sb-notice.success {
+  background: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.aeo-sb-notice.error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.aeo-sb-notice.loading {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+/* ── Editor fields ── */
+.aeo-sb-editor {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 14px;
+}
+
+.aeo-sb-field {
+  margin-bottom: 14px;
+}
+
+.aeo-sb-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+/* ── Bullet column headers ── */
+.aeo-sb-bullets-header {
+  display: grid;
+  grid-template-columns: 130px 1fr 1.5fr 28px;
+  gap: 6px;
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+
+.aeo-sb-bullets-header span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Bullet rows — 4-column grid ── */
+.aeo-sb-bullet-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 1.5fr 28px;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+/* Tất cả inputs bên trong chiếm toàn bộ ô grid */
+.aeo-sb-bullet-row input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.aeo-sb-remove-bullet {
+  color: #dc3545 !important;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  justify-self: center;
+}
+
+.aeo-sb-remove-bullet:hover {
+  color: #a71d2a !important;
+}
+
+/* ── GO Contact section ── */
+#aeo-sb-go-contact {
+  background: #f0f8ff;
+  border: 1px solid #b0d4f1;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+#aeo-sb-go-contact > label {
+  color: #1a5276;
+}
+
+#aeo-sb-go-contact input {
+  display: block;
+  margin-top: 5px;
+}
+
+/* ── Preview ── */
+.aeo-sb-preview-wrap {
+  margin-top: 18px;
+}
+
+.aeo-sb-preview-wrap label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+#aeo-sb-preview .aeo-sb-box {
+  max-width: 680px;
+  font-size: 14px;
+}
+
+/* ── Nút Hoàn tác ── */
+.aeo-sb-restore-btn {
+  border-color: #e0a800 !important;
+  color: #7a5200 !important;
+  background: #fff8e1 !important;
+}
+
+.aeo-sb-restore-btn:hover {
+  background: #fff3cc !important;
+  border-color: #c98a00 !important;
+  color: #5c3d00 !important;
+}
+
+/* ── Diff view ── */
+.aeo-sb-diff-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.aeo-sb-diff-col {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.aeo-sb-diff-col-head {
+  font-weight: 600;
+  padding: 7px 12px;
+  font-size: 12px;
+  background: #f6f7f7;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.aeo-sb-diff-backup .aeo-sb-diff-col-head {
+  background: #fff8e1;
+  color: #7a5200;
+}
+
+.aeo-sb-diff-body {
+  padding: 10px 12px;
+  line-height: 1.6;
+}
+
+.aeo-sb-diff-tldr {
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.aeo-sb-diff-tldr.changed {
+  background: #fff3e0;
+  border-left: 3px solid #e0a800;
+}
+
+.aeo-sb-diff-tldr.same {
+  background: #f6f7f7;
+}
+
+.aeo-sb-diff-bullet {
+  padding: 2px 0;
+  font-size: 12px;
+  color: #444;
+}
+
+.aeo-sb-diff-bullet.added   { color: #1b5e20; background: #e8f5e9; border-radius: 3px; padding: 2px 6px; }
+.aeo-sb-diff-bullet.removed { color: #b71c1c; background: #fce4ec; border-radius: 3px; padding: 2px 6px; }
+
+/* ── Elementor editor placeholder ── */
+.aeo-sb-placeholder {
+  padding: 20px;
+  background: #f0f0f1;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  color: #666;
+  text-align: center;
+  font-size: 13px;
+}

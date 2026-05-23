@@ -1,0 +1,16 @@
+{
+  "name": "aeo-summary-box",
+  "version": "1.0.0",
+  "description": "WordPress plugin: AEO/GEO Summary Box for real estate content",
+  "scripts": {
+    "start": "wp-env start",
+    "stop": "wp-env stop",
+    "clean": "wp-env destroy",
+    "logs": "wp-env run wordpress tail -f /var/www/html/wp-content/debug.log",
+    "shell": "wp-env run wordpress bash",
+    "wp": "wp-env run wordpress wp"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^9.0.0"
+  }
+}

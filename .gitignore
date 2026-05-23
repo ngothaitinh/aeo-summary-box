@@ -1,0 +1,19 @@
+﻿# ZIP builds
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+
+# Claude Code local settings (không commit)
+.claude/
+
+# WordPress build artifacts
+/vendor/
