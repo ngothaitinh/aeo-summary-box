@@ -25,7 +25,7 @@ jobs:
           username:        ${{ secrets.FTP_USERNAME }}
           password:        ${{ secrets.FTP_PASSWORD }}
           port:            21
-          protocol:        ftps         # Explicit FTPS (cPanel hỗ trợ)
+          protocol:        ftp          # Plain FTP (server không dùng SSL)
           local-dir:       ./aeo-summary-box/
           server-dir:      /public_html/wp-content/plugins/aeo-summary-box/
           dangerous-clean-slate: false  # KHÔNG xoá file trên server trước khi upload
