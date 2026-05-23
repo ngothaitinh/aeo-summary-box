@@ -21,7 +21,7 @@ jobs:
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server:          ftp.tpiland.com
+          server:          103.77.162.22
           username:        claudecode@tpiland.com
           password:        ${{ secrets.FTP_PASSWORD }}
           port:            21
