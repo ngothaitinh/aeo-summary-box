@@ -9,16 +9,19 @@ on:
 
 jobs:
   deploy:
-    name: Trigger cPanel Git Pull
+    name: Deploy via Webhook
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger cPanel to pull latest code
+      - name: Call deploy webhook on server
         run: |
-          HTTP_CODE=$(curl -s -o /tmp/cpanel_response.txt -w "%{http_code}" \
-            -u "tpilandc:${{ secrets.CPANEL_PASSWORD }}" \
-            "https://tpiland.com:2083/execute/VersionControl/update?repository_root=%2Fhome%2Ftpilandc%2Frepos%2Faeo-summary-box")
-          cat /tmp/cpanel_response.txt
+          HTTP_CODE=$(curl -s -o /tmp/deploy_response.txt -w "%{http_code}" \
+            --max-time 30 \
+            -X POST \
+            -H "X-Deploy-Token: ${{ secrets.DEPLOY_SECRET }}" \
+            "https://tpiland.com/deploy-webhook.php")
+          cat /tmp/deploy_response.txt
+          echo ""
           echo "HTTP status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "Deploy failed with HTTP $HTTP_CODE"
