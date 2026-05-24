@@ -23,10 +23,10 @@ class Bulk {
 	private const CRON_HOOK = 'aeo_sb_process_queue';
 
 	/** Khoảng cách giữa các lần xử lý (giây). */
-	private const PROCESS_INTERVAL = 5;
+	private const PROCESS_INTERVAL = 3;
 
 	/** Số bài xử lý mỗi lần cron fire. */
-	private const BATCH_SIZE = 5;
+	private const BATCH_SIZE = 10;
 
 	/** Option key lưu trạng thái progress. */
 	private const STATUS_OPTION = 'aeo_sb_bulk_status';
