@@ -37,7 +37,7 @@ class Elementor_Widget extends \Elementor\Widget_Base {
 		$this->add_control( 'header_text', [
 			'label'   => __( 'Tiêu đề header hộp', 'aeo-summary-box' ),
 			'type'    => \Elementor\Controls_Manager::TEXT,
-			'default' => __( 'Sổ tay bất động sản', 'aeo-summary-box' ),
+			'default' => __( 'Tóm tắt bởi AI', 'aeo-summary-box' ),
 		] );
 
 		$this->add_control( 'source', [

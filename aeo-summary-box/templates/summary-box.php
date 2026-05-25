@@ -7,7 +7,7 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-$header_text  = $summary['header_text'] ?? __( 'Sổ tay bất động sản', 'aeo-summary-box' );
+$header_text  = $summary['header_text'] ?? __( 'Tóm tắt bởi AI', 'aeo-summary-box' );
 $bullet_count = count( $summary['bullets'] ?? [] );
 $modified     = get_the_modified_date( 'd/m/Y' );
 

@@ -111,7 +111,7 @@
       <div class="aeo-sb-box">
         <div class="aeo-sb-header">
           <span class="aeo-sb-header-icon">🏠</span>
-          <span class="aeo-sb-header-text">Sổ tay bất động sản</span>
+          <span class="aeo-sb-header-text">Tóm tắt bởi AI</span>
         </div>
         <div class="aeo-sb-body">
           ${tldr}
