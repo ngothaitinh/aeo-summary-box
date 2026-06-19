@@ -47,6 +47,16 @@ if ( ! is_dir( PLUGIN_DIR ) ) {
 	mkdir( PLUGIN_DIR, 0755, true );
 }
 $out   = shell_exec( 'cp -Rf ' . escapeshellarg( $plugin_src . '/.' ) . ' ' . escapeshellarg( PLUGIN_DIR . '/' ) . ' 2>&1' );
-$log[] = 'cp: ' . ( trim( $out ) ?: 'OK' );
+$log[] = 'cp plugin: ' . ( trim( $out ) ?: 'OK' );
+
+// 4. Tự cập nhật chính file deploy-webhook.php
+$self_src = REPO_DIR . '/deploy-webhook.php';
+$self_dst = __FILE__;
+if ( file_exists( $self_src ) ) {
+	$ok    = copy( $self_src, $self_dst );
+	$log[] = 'self-update webhook: ' . ( $ok ? 'OK' : 'FAIL' );
+} else {
+	$log[] = 'self-update webhook: skipped (not found in repo)';
+}
 
 echo json_encode( [ 'deployed' => true, 'time' => date( 'Y-m-d H:i:s' ), 'log' => $log ] );
