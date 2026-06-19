@@ -147,11 +147,11 @@ class AI_Client {
 		$response = wp_remote_post( $url, [
 			'headers' => [ 'Content-Type' => 'application/json' ],
 			'body'    => $body,
-			'timeout' => 30,
+			'timeout' => 60,
 		] );
 
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $this->wrap_connection_error( $response, 'generativelanguage.googleapis.com' );
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
@@ -192,11 +192,11 @@ class AI_Client {
 				'anthropic-version' => '2023-06-01',
 			],
 			'body'    => $body,
-			'timeout' => 30,
+			'timeout' => 60,
 		] );
 
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $this->wrap_connection_error( $response, 'api.anthropic.com' );
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
@@ -238,11 +238,11 @@ class AI_Client {
 				'Authorization' => 'Bearer ' . $this->api_key,
 			],
 			'body'    => $body,
-			'timeout' => 30,
+			'timeout' => 60,
 		] );
 
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $this->wrap_connection_error( $response, 'api.openai.com' );
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
@@ -293,11 +293,11 @@ class AI_Client {
 				'Authorization' => 'Bearer ' . $this->api_key,
 			],
 			'body'    => wp_json_encode( $body_args ),
-			'timeout' => 30,
+			'timeout' => 60,
 		] );
 
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $this->wrap_connection_error( $response, (string) wp_parse_url( $this->custom_endpoint, PHP_URL_HOST ) );
 		}
 
 		$raw_body  = wp_remote_retrieve_body( $response );
@@ -540,6 +540,86 @@ Tiêu đề bài: {$post_title}
 Nội dung bài:
 {$content_excerpt}
 PROMPT;
+	}
+
+	/**
+	 * Thêm hướng dẫn chi tiết vào lỗi kết nối để dễ debug.
+	 */
+	private function wrap_connection_error( \WP_Error $error, string $host ): \WP_Error {
+		$msg  = $error->get_error_message();
+		$hint = '';
+
+		if ( str_contains( $msg, 'timed out' ) || str_contains( $msg, 'Operation timed out' ) ) {
+			$hint = sprintf(
+				/* translators: %s: hostname */
+				__( ' → Có thể hosting chặn outbound HTTPS đến %s. Liên hệ nhà cung cấp hosting để mở cổng 443 ra ngoài, hoặc dùng VPS/proxy.', 'aeo-summary-box' ),
+				$host
+			);
+		} elseif ( str_contains( $msg, 'Could not resolve host' ) ) {
+			$hint = __( ' → Server không phân giải được DNS. Kiểm tra DNS resolver của hosting.', 'aeo-summary-box' );
+		} elseif ( str_contains( $msg, 'SSL' ) || str_contains( $msg, 'certificate' ) ) {
+			$hint = __( ' → Lỗi SSL. Hosting có thể dùng CA bundle cũ. Liên hệ hosting để cập nhật.', 'aeo-summary-box' );
+		}
+
+		return new \WP_Error(
+			$error->get_error_code(),
+			$msg . $hint,
+			$error->get_error_data()
+		);
+	}
+
+	/**
+	 * Kiểm tra kết nối đến endpoint của provider — dùng cho trang Settings.
+	 * Trả về array ['ok' => bool, 'message' => string, 'latency_ms' => int]
+	 */
+	public function test_connection(): array {
+		$urls = [
+			'gemini' => 'https://generativelanguage.googleapis.com/v1beta/models?key=' . $this->api_key,
+			'claude' => 'https://api.anthropic.com/v1/models',
+			'openai' => 'https://api.openai.com/v1/models',
+			'custom' => $this->custom_endpoint,
+		];
+
+		$url = $urls[ $this->provider ] ?? '';
+		if ( empty( $url ) ) {
+			return [ 'ok' => false, 'message' => 'Endpoint không hợp lệ.', 'latency_ms' => 0 ];
+		}
+
+		$headers = [ 'Content-Type' => 'application/json' ];
+		if ( 'claude' === $this->provider ) {
+			$headers['x-api-key']         = $this->api_key;
+			$headers['anthropic-version']  = '2023-06-01';
+		} elseif ( in_array( $this->provider, [ 'openai', 'custom' ], true ) ) {
+			$headers['Authorization'] = 'Bearer ' . $this->api_key;
+		}
+
+		$start    = microtime( true );
+		$response = wp_remote_get( $url, [
+			'headers' => $headers,
+			'timeout' => 15,
+		] );
+		$latency  = (int) round( ( microtime( true ) - $start ) * 1000 );
+
+		if ( is_wp_error( $response ) ) {
+			$msg = $response->get_error_message();
+			if ( str_contains( $msg, 'timed out' ) ) {
+				$msg .= ' → Hosting có thể chặn outbound HTTPS. Liên hệ nhà cung cấp hosting.';
+			}
+			return [ 'ok' => false, 'message' => $msg, 'latency_ms' => $latency ];
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		// 200, 401 (invalid key nhưng kết nối OK), 404 đều chứng tỏ server trả về.
+		$connected = $code > 0 && $code < 600;
+		$msg       = $connected
+			? sprintf( 'Kết nối thành công (HTTP %d, %d ms).', $code, $latency )
+			: "Không nhận được response hợp lệ (HTTP {$code}).";
+
+		if ( 401 === $code ) {
+			$msg .= ' API Key không hợp lệ hoặc chưa có quyền.';
+		}
+
+		return [ 'ok' => $connected, 'message' => $msg, 'latency_ms' => $latency ];
 	}
 
 	private function parse_json_text( string $text ): array|\WP_Error {

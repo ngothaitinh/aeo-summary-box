@@ -73,6 +73,12 @@ class REST_API {
 			'permission_callback' => [ $this, 'check_admin_permission' ],
 		] );
 
+		register_rest_route( 'aeo-summary/v1', '/test-connection', [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'handle_test_connection' ],
+			'permission_callback' => [ $this, 'check_admin_permission' ],
+		] );
+
 		register_rest_route( 'aeo-summary/v1', '/restore/(?P<post_id>\d+)', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'handle_restore' ],
@@ -339,6 +345,13 @@ class REST_API {
 			'summary'  => $backup['data']     ?? null,
 			'saved_at' => $backup['saved_at'] ?? null,
 		], 200 );
+	}
+
+	/** Kiểm tra kết nối đến API provider. */
+	public function handle_test_connection( \WP_REST_Request $request ): \WP_REST_Response {
+		$result = ( new AI_Client() )->test_connection();
+		$status = $result['ok'] ? 200 : 503;
+		return new \WP_REST_Response( $result, $status );
 	}
 
 	/** Xoá cache llms.txt để tái tạo ngay. */

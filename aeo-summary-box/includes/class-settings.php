@@ -452,6 +452,38 @@ Nội dung bài:
 					</tbody>
 				</table>
 
+				<p>
+					<button type="button" id="aeo-test-connection" class="button button-secondary">
+						🔌 <?php esc_html_e( 'Kiểm tra kết nối API', 'aeo-summary-box' ); ?>
+					</button>
+					<span id="aeo-test-result" style="margin-left:12px;font-weight:600;"></span>
+				</p>
+				<script>
+				(function(){
+					document.getElementById('aeo-test-connection').addEventListener('click', function(){
+						var btn = this;
+						var out = document.getElementById('aeo-test-result');
+						btn.disabled = true;
+						out.style.color = '#666';
+						out.textContent = '⏳ Đang kiểm tra...';
+						fetch(<?php echo wp_json_encode( rest_url( 'aeo-summary/v1/test-connection' ) ); ?>, {
+							method: 'GET',
+							headers: { 'X-WP-Nonce': <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?> }
+						})
+						.then(function(r){ return r.json(); })
+						.then(function(d){
+							out.style.color = d.ok ? '#2e7d32' : '#c62828';
+							out.textContent = (d.ok ? '✅ ' : '❌ ') + d.message;
+						})
+						.catch(function(e){
+							out.style.color = '#c62828';
+							out.textContent = '❌ Lỗi không xác định: ' + e.message;
+						})
+						.finally(function(){ btn.disabled = false; });
+					});
+				})();
+				</script>
+
 				<h2><?php esc_html_e( 'Cài đặt chung', 'aeo-summary-box' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
